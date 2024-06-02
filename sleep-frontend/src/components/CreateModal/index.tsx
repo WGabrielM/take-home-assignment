@@ -1,61 +1,85 @@
-import{ useEffect, useState } from 'react'
-import { ButtonSubmit, FormInput, ModalBody, ModalOverlay } from './styles';
+import { useEffect, useState } from "react";
+import { ButtonSubmit, FormInput, ModalBody, ModalOverlay } from "./styles";
+
+import { TakeHomeData } from "../../TakeHomeData";
+import { useTakeHomeMutate } from "../../hooks/useTakeHomeMutate";
 
 interface InputProps {
-    label: string;
-    value: string | number;
-    updateValue(value: any): void;
-  }
+  label: string;
+  value: string | number;
+  updateValue(value: any): void;
+}
 
 interface ModalProps {
-    closeModal(): void;
-  }
+  closeModal(): void;
+}
 
 const Input = ({ label, value, updateValue }: InputProps) => {
-    return (
-      <>
-        <label>{label}</label>
-        <input
-          value={value}
-          onChange={(event) => updateValue(event.target.value)}
-        ></input>
-      </>
-    );
+  return (
+    <>
+      <label>{label}</label>
+      <input
+        value={value}
+        onChange={(event) => updateValue(event.target.value)}
+      ></input>
+    </>
+  );
+};
+
+export default function CreateModal({closeModal}: ModalProps) {
+  const [date, setDate] = useState(new Date());
+  const [timeBed, setTimeBed] = useState("");
+  const [timeWake, setTimeWake] = useState("");
+  const [status, setStatus] = useState("");
+  const [totalTime, setTotalTime] = useState("");
+  const { mutate, isSuccess, isLoading } = useTakeHomeMutate();
+
+  const submit = () => {
+    const takeHomeData: TakeHomeData = {
+      date,
+      timeBed,
+      timeWake,
+      status,
+      totalTime,
+    };
+    mutate(takeHomeData);
   };
 
-export default function CreateModal() {
-    const [title, setTitle] = useState("");
-    const [price, setPrice] = useState(0);
-    const [image, setImage] = useState("");
-    const { mutate, isSuccess, isLoading } = useFoodDataMutate();
-  
-    const submit = () => {
-      const foodData: FoodData = {
-        title,
-        price,
-        image,
-      };
-      mutate(foodData);
-    };
-  
-    useEffect(() => {
-      if (!isSuccess) return;
-      closeModal();
-    }, [isSuccess]);
-  
-    return (
-      <ModalOverlay>
-        <ModalBody>
-          <h2>Cadastre um novo item no cardápio</h2>
-          <FormInput>
-            <Input label="title" value={title} updateValue={setTitle} />
-            <Input label="price" value={price} updateValue={setPrice} />
-            <Input label="image" value={image} updateValue={setImage} />
-          </FormInput>
-          <ButtonSubmit onClick={submit} className="btn-secondary">
-            {isLoading ? "posting..." : "posted"}
-          </ButtonSubmit>
-        </ModalBody>
-      </ModalOverlay>
-    );
+  useEffect(() => {
+    if (!isSuccess) return;
+    closeModal();
+  }, [isSuccess]);
+
+  return (
+    <ModalOverlay>
+      <ModalBody>
+        <h2>Register a New Sleep Time</h2>
+        <FormInput>
+          <Input
+            label="Date"
+            value={date.toISOString()}
+            updateValue={setDate}
+          />
+          <Input
+            label="Time to Sleep"
+            value={timeBed}
+            updateValue={setTimeBed}
+          />
+          <Input
+            label="Time to Awake"
+            value={timeWake}
+            updateValue={setTimeWake}
+          />
+          <Input
+            label="Morning Feeling"
+            value={status}
+            updateValue={setStatus}
+          />
+        </FormInput>
+        <ButtonSubmit onClick={submit} className="btn-secondary">
+          {isLoading ? "posting..." : "posted"}
+        </ButtonSubmit>
+      </ModalBody>
+    </ModalOverlay>
+  );
 }
