@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 100vw;
+
+  .card-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card-add {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+
+    border-radius: 8px;
+    background-color: lightgray;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+
+    padding: 10px;
+
+    height: 275px;
+    width: 222px;
+
+    button {
+      cursor: pointer;
+      border: 0;
+      background-color: lightgray;
+    }
+
+  }
+}
