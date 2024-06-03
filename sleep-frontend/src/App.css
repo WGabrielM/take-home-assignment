@@ -23,13 +23,22 @@
 
     padding: 10px;
 
-    height: 275px;
+    
     width: 222px;
 
     button {
       cursor: pointer;
       border: 0;
       background-color: lightgray;
+    }
+    
+    .buttonAverage {
+      font-weight: bold;
+      border-radius: 10px;
+      background-color: #bfbfbf;
+
+      padding: 10px;
+
     }
 
   }

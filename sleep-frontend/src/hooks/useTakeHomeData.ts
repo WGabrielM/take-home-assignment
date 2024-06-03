@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosPromise } from "axios";
-import { TakeHomeData } from "../TakeHomeData";
+import { useQuery } from "@tanstack/react-query";
+import { TakeHomeData } from "../interfaces/TakeHomeData";
 
 const API_URL = 'http://localhost:8080';
 

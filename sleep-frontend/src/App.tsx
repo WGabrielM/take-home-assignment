@@ -5,16 +5,22 @@ import { ThemeProvider } from "styled-components";
 import "./App.css";
 
 import Card from "./components/Card";
+import CreateModal from "./components/CreateModal";
 import useTakeHomeData from "./hooks/useTakeHomeData";
 import { defaultTheme } from "./styles/themes/default";
-import CreateModal from "./components/CreateModal";
+import CreateModalAverage from "./components/CreateModalAverage";
 
 function App() {
   const { data } = useTakeHomeData();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isModalAverageOpen, setIsModalAverageOpen] = useState(false);
+  
   const handleOpenModal = () => {
     setIsModalOpen((prev) => !prev);
+  };
+
+  const handleOpenModalAverage = () => {
+    setIsModalAverageOpen((prev) => !prev);
   };
 
   return (
@@ -28,6 +34,10 @@ function App() {
             <button onClick={handleOpenModal}>
               <PlusCircle size={205}  />
             </button>
+            <button className="buttonAverage" onClick={handleOpenModalAverage}>
+              Average
+            </button>
+            {isModalAverageOpen && <CreateModalAverage closeModal={handleOpenModalAverage} />}
           </div>
           {data?.map((takeHomeData) => (
             <Card

@@ -1,7 +1,7 @@
 import axios, { AxiosPromise } from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { TakeHomeData } from "../TakeHomeData";
+import { TakeHomeData } from "../interfaces/TakeHomeData";
 
 const API_URL = 'http://localhost:8080';
 
