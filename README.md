@@ -48,7 +48,7 @@ Run:
 Install docker and run:
 
 ```bash
-  docker-compose up --build
+  docker-compose up db
 ```
 
 Run the project with an IDEA (IntelliJ, Eclipse or VSCode) which will create the tables in the database.
