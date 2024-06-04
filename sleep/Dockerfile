@@ -1,14 +1,11 @@
-FROM openjdk:17-alpine
+FROM openjdk:17
+
+RUN microdnf install findutils
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache \
-    bash \
-    coreutils \
-    findutils \
-    build-base
-
 COPY build.gradle gradlew settings.gradle ./
+
 COPY gradle/ gradle/
 
 RUN chmod +x gradlew
@@ -17,4 +14,6 @@ RUN ./gradlew wrapper
 
 COPY src/ src
 
-ENTRYPOINT ["java", "-jar", "build/libs/sleep-0.0.1-SNAPSHOT.jar"]
+RUN ./gradlew build -x test
+
+ENTRYPOINT ["java","-jar","build/libs/sleep-0.0.1-SNAPSHOT.jar"]
