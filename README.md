@@ -33,11 +33,6 @@ The assignment is to:
  1. Write a simple script or create Postman collection that can be used to test the API
 
 
-
-
-
-
-
 ## How to Run
 
 Download the project.
