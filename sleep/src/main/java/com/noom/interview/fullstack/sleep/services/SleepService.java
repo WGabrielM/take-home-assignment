@@ -22,69 +22,79 @@ import java.util.stream.Collectors;
 @Service
 public class SleepService {
 
-    @Autowired
-    private SleepRepository sleepRepository;
+    private final SleepRepository sleepRepository;
+    private final ModelMapper modelMapper;
 
-    ModelMapper modelMapper = new ModelMapper();
+    public SleepService(SleepRepository sleepRepository, ModelMapper modelMapper) {
+        this.sleepRepository = sleepRepository;
+        this.modelMapper = modelMapper;
+    }
 
     public SleepEntity saveSleep(SleepEntity sleepEntity) {
-        return this.sleepRepository.save(sleepEntity);
+        return sleepRepository.save(sleepEntity);
     }
 
     public List<SleepResponseDTO> listAll() {
-        var sleepList = sleepRepository.findAll();
-        return sleepList.stream().map(sleepEntity -> {
-
-            var sleepDto = modelMapper.map(sleepEntity, SleepResponseDTO.class);
-
-            Duration totalSeconds = Duration.between(sleepDto.getTimeBed(), sleepDto.getTimeWake());
-
-            if (totalSeconds.isNegative()) {
-                totalSeconds = totalSeconds.plusDays(1);
-            }
-            long secondsOfDay = totalSeconds.getSeconds();
-            int nanosOfDay = totalSeconds.getNano();
-            LocalTime resultTime = LocalTime.ofSecondOfDay(secondsOfDay).plusNanos(nanosOfDay);
-
-            sleepDto.setTotalTime(resultTime);
-
-            return sleepDto;
-        }).collect(Collectors.toList());
+        return sleepRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    public SleepAverageDTO getSleepAvarage() {
+    public SleepAverageDTO getSleepAverage() {
         var result = new SleepAverageDTO();
-
         var end = LocalDate.now();
         var init = end.minusDays(30);
 
-        var lastRecords = sleepRepository.takeThePeriod(init, end);
+        var lastRecords = sleepRepository.findSleepEntitiesWithinPeriod(init, end);
+
+        if (lastRecords.isEmpty()) {
+            throw new IllegalStateException("No sleep records found for the given period.");
+        }
 
         result.setInitPeriod(lastRecords.get(0).getDate());
         result.setEndPeriod(lastRecords.get(lastRecords.size() - 1).getDate());
 
-        preencherMediaHoras(lastRecords.stream().map(SleepEntity::getTimeBed).map(LocalDateTime::toLocalTime).toList(), result::setTimeSleepAverage);
-        preencherMediaHoras(lastRecords.stream().map(SleepEntity::getTimeWake).map(LocalDateTime::toLocalTime).toList(), result::setTimeWakeAverage);
+        fillAverageTimes(lastRecords.stream().map(SleepEntity::getTimeBed).map(LocalDateTime::toLocalTime).toList(), result::setTimeSleepAverage);
+        fillAverageTimes(lastRecords.stream().map(SleepEntity::getTimeWake).map(LocalDateTime::toLocalTime).toList(), result::setTimeWakeAverage);
 
         Duration totalSeconds = Duration.between(result.getTimeSleepAverage(), result.getTimeWakeAverage());
         if (totalSeconds.isNegative()) {
             totalSeconds = totalSeconds.plusDays(1);
         }
-        long secondsOfDay = totalSeconds.getSeconds();
-        int nanosOfDay = totalSeconds.getNano();
-        LocalTime resultTime = LocalTime.ofSecondOfDay(secondsOfDay).plusNanos(nanosOfDay);
+        LocalTime resultTime = LocalTime.ofSecondOfDay(totalSeconds.getSeconds()).plusNanos(totalSeconds.getNano());
         result.setSleepHourAverage(resultTime);
 
-        result.setCountBad(lastRecords.stream().map(SleepEntity::getStatus).filter(SleepStatus.BAD::equals).count());
-        result.setCountOk(lastRecords.stream().map(SleepEntity::getStatus).filter(SleepStatus.OK::equals).count());
-        result.setCountGood(lastRecords.stream().map(SleepEntity::getStatus).filter(SleepStatus.GOOD::equals).count());
+        result.setCountBad(countStatus(lastRecords, SleepStatus.BAD));
+        result.setCountOk(countStatus(lastRecords, SleepStatus.OK));
+        result.setCountGood(countStatus(lastRecords, SleepStatus.GOOD));
 
         return result;
     }
 
-    private static void preencherMediaHoras(List<LocalTime> sleepHours, Consumer<LocalTime> setter) {
-        int totalTimeInMinutesSleep = sleepHours.stream().map(LocalTime::getMinute).reduce(0, Integer::sum);
-        totalTimeInMinutesSleep += (60 * sleepHours.stream().map(LocalTime::getHour).reduce(0, Integer::sum));
-        setter.accept(LocalTime.of(((totalTimeInMinutesSleep / 60) / sleepHours.size()) % 24, (totalTimeInMinutesSleep / sleepHours.size()) % 60));
+    private SleepResponseDTO convertToDto(SleepEntity sleepEntity) {
+        var sleepDto = modelMapper.map(sleepEntity, SleepResponseDTO.class);
+
+        Duration totalSeconds = Duration.between(sleepDto.getTimeBed(), sleepDto.getTimeWake());
+        if (totalSeconds.isNegative()) {
+            totalSeconds = totalSeconds.plusDays(1);
+        }
+        LocalTime resultTime = LocalTime.ofSecondOfDay(totalSeconds.getSeconds()).plusNanos(totalSeconds.getNano());
+
+        sleepDto.setTotalTime(resultTime);
+        return sleepDto;
+    }
+
+    private void fillAverageTimes(List<LocalTime> times, Consumer<LocalTime> setter) {
+        int totalMinutes = times.stream().mapToInt(LocalTime::toSecondOfDay).sum();
+        int averageMinutes = totalMinutes / times.size();
+        LocalTime averageTime = LocalTime.ofSecondOfDay(averageMinutes);
+        setter.accept(averageTime);
+    }
+
+    private long countStatus(List<SleepEntity> records, SleepStatus status) {
+        return records.stream()
+                .map(SleepEntity::getStatus)
+                .filter(status::equals)
+                .count();
     }
 }

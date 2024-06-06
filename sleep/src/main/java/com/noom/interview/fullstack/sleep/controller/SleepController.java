@@ -59,7 +59,7 @@ public class SleepController {
      */
     @GetMapping("/average")
     public ResponseEntity<SleepAverageDTO> getSleepAverage() {
-        var result = sleepService.getSleepAvarage();
+        var result = sleepService.getSleepAverage();
         return ResponseEntity.ok(result);
     }
 
